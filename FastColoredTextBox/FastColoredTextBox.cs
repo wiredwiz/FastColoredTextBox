@@ -231,7 +231,7 @@ namespace FastColoredTextBoxNS
          AccessibleRole = AccessibleRole.Text;
          AccessibleDescription = "Textbox control";
          AccessibleDefaultActionDescription = "Edit";
-         AccessibleName = "Fast Colored Text Box";
+         AccessibleName = string.Empty;
          // #TODO add AccessibilityObject support
          timer.Tick += Timer_Tick;
          timer2.Tick += Timer2_Tick;
@@ -5648,6 +5648,29 @@ namespace FastColoredTextBoxNS
          }
       }
 
+      public List<Line> GetVisibleTextLines()
+      {
+         var resultLines = new List<Line>();
+
+         int startLine = YtoLineIndex(VerticalScroll.Value);
+         int iLine;
+         //draw text
+         for (iLine = startLine; iLine < lines.Count; iLine++)
+         {
+            Line line = lines[iLine];
+            LineInfo lineInfo = LineInfos[iLine];
+            //
+            if (lineInfo.startY > VerticalScroll.Value + ClientSize.Height)
+               break;
+            if (lineInfo.startY + lineInfo.WordWrapStringsCount * CharHeight < VerticalScroll.Value)
+               continue;
+
+            resultLines.Add(line);
+         }
+
+         return resultLines;
+      }
+
       protected override void OnEnter(EventArgs e)
       {
          base.OnEnter(e);
@@ -6147,6 +6170,20 @@ namespace FastColoredTextBoxNS
       }
 
       /// <summary>
+      /// Creates a new accessibility object for the control.
+      /// </summary>
+      /// <returns>
+      /// A new <see cref="T:System.Windows.Forms.AccessibleObject" /> for the control.
+      /// </returns>
+      protected override AccessibleObject CreateAccessibilityInstance()
+      {
+         var norm = base.CreateAccessibilityInstance();
+         //return norm;
+         var my = new FastColoredTextBoxAccessibleObject(this, norm.Parent);
+         return my;
+      }
+
+      /// <summary>
       /// Fires TextChanging event
       /// </summary>
       public virtual void OnTextChanging(ref string text)
@@ -6319,6 +6356,11 @@ namespace FastColoredTextBoxNS
          ResetTimer(timer);
 
          SelectionChanged?.Invoke(this, new EventArgs());
+         if (AccessibilityObject != null)
+         {
+            AccessibilityObject.Select(AccessibleSelection.TakeFocus);
+            AccessibilityNotifyClients(AccessibleEvents.LocationChange, 0);
+         }
 
 #if debug
             Console.WriteLine("OnSelectionChanged: "+ sw.ElapsedMilliseconds);
