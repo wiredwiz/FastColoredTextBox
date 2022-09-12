@@ -36,6 +36,17 @@
     <DefineConstants>$(DefineConstants)TRACE;Styles32</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <COMReference Include="UIA">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>930299ce-9965-4dec-b0f4-a54848d4b667</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
     <None Include="$(SolutionDir)icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

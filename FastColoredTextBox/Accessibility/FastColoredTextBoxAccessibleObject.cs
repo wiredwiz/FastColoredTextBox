@@ -62,14 +62,14 @@ public partial class FastColoredTextBox
       /// <param name="textBox">The text box.</param>
       public FastColoredTextBoxAccessibleObject(FastColoredTextBox textBox, AccessibleObject parent)
       {
-         Parent = parent;
+         //Parent = parent;
          TextBox = textBox;
          Name = string.Empty;
-         Lines = new List<AccessibleObject>();
+         Lines = new List<LineAccessibleObject>();
          BuildAccessibleLines(textBox);
       }
 
-      internal List<AccessibleObject> Lines;
+      internal List<LineAccessibleObject> Lines;
 
       /// <summary>
       /// Gets or sets the text box.
@@ -138,11 +138,11 @@ public partial class FastColoredTextBox
       /////// <value>The help.</value>
       ////public override string Help => "Edit";
 
-      /// <summary>
-      /// Gets the parent of an accessible object.
-      /// </summary>
-      /// <value>The parent.</value>
-      public override AccessibleObject Parent { get; }
+      ///// <summary>
+      ///// Gets the parent of an accessible object.
+      ///// </summary>
+      ///// <value>The parent.</value>
+      //public override AccessibleObject Parent { get; }
 
       /// <summary>
       /// Retrieves the accessible child corresponding to the specified index.
@@ -174,9 +174,33 @@ public partial class FastColoredTextBox
          return base.GetSelected();
       }
 
+      public override AccessibleObject GetFocused()
+      {
+         if (Lines.Count != 0)
+            return Lines[0];
+
+         return base.GetFocused();
+      }
+
       public override void Select(AccessibleSelection flags)
       {
-         Lines[0].Select(flags);
+         var childId = 0;
+
+         // Determine which selection action should occur, based on the
+         // AccessibleSelection value.
+         if ((flags & AccessibleSelection.TakeSelection) != 0)
+         {
+            for (var i = 0; i < Lines.Count; i++)
+               Lines[i].Selected = i == childId;
+
+            // AccessibleSelection.AddSelection means that the CurveLegend will be selected.
+            if ((flags & AccessibleSelection.AddSelection) != 0)
+               Lines[childId].Selected = true;
+
+            // AccessibleSelection.AddSelection means that the CurveLegend will be unselected.
+            if ((flags & AccessibleSelection.RemoveSelection) != 0)
+               Lines[childId].Selected = false;
+         }
       }
 
       /// <summary>
@@ -185,7 +209,7 @@ public partial class FastColoredTextBox
       /// <param name="textBox">The text box.</param>
       protected virtual void BuildAccessibleLines(FastColoredTextBox textBox)
       {
-         Lines = new List<AccessibleObject>();
+         Lines = new List<LineAccessibleObject>();
          int firstChar = Math.Max(0, TextBox.HorizontalScroll.Value - TextBox.Paddings.Left) / TextBox.CharWidth;
          int lastChar = (TextBox.HorizontalScroll.Value + TextBox.ClientSize.Width) / TextBox.CharWidth;
          //

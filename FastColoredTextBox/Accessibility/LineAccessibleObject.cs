@@ -55,7 +55,8 @@ public partial class FastColoredTextBox
          Rectangle bounds)
       {
          TextBox = textBox;
-         Name = text;
+         Name = $"Line {literalIndexNo + 1}";
+         Value = text;
          _LineNo = lineNo;
          this.literalIndexNo = literalIndexNo;
          _Bounds = bounds;
@@ -66,7 +67,7 @@ public partial class FastColoredTextBox
 
       private readonly int literalIndexNo;
 
-      protected bool Selected
+      public bool Selected
       {
          get => selected;
          set
@@ -162,6 +163,10 @@ public partial class FastColoredTextBox
          }
       }
 
+      /// <summary>
+      /// Modifies the selection or moves the keyboard focus of the accessible object.
+      /// </summary>
+      /// <param name="flags">One of the <see cref="T:System.Windows.Forms.AccessibleSelection" /> values.</param>
       public override void Select(AccessibleSelection flags)
       {
          if (flags.HasFlag(AccessibleSelection.RemoveSelection))
