@@ -49,6 +49,32 @@ namespace FastColoredTextBoxNS;
 public partial class FastColoredTextBox
 {
    /// <summary>
+   /// Creates a new accessibility object for the control.
+   /// </summary>
+   /// <returns>
+   /// A new <see cref="T:System.Windows.Forms.AccessibleObject" /> for the control.
+   /// </returns>
+   protected override AccessibleObject CreateAccessibilityInstance()
+   {
+      var norm = base.CreateAccessibilityInstance();
+      //return norm;
+      var my = new FastColoredTextBoxAccessibleObject(this, norm.Parent);
+      return my;
+   }
+
+   /// <summary>
+   /// Retrieves the specified <see cref="T:System.Windows.Forms.AccessibleObject" />.
+   /// </summary>
+   /// <param name="objectId">An <see cref="T:System.Int32" /> that identifies the <see cref="T:System.Windows.Forms.AccessibleObject" /> to retrieve.</param>
+   /// <returns>
+   /// The specified <see cref="T:System.Windows.Forms.AccessibleObject" />.
+   /// </returns>
+   protected override AccessibleObject GetAccessibilityObjectById(int objectId)
+   {
+      return (AccessibilityObject as FastColoredTextBoxAccessibleObject)?.Lines[objectId];
+   }
+
+   /// <summary>
    /// Class that implements accessibility for a Fast Colored Text Box instance.
    /// Implements the <see cref="AccessibleObject" />
    /// </summary>

@@ -113,6 +113,11 @@ public partial class FastColoredTextBox
       public override string Name { get; set; }
 
       /// <summary>
+      /// Gets or sets the value of an accessible object.
+      /// </summary>
+      public override string Value { get; set; }
+
+      /// <summary>
       /// Gets the parent of an accessible object.
       /// </summary>
       public override AccessibleObject Parent => TextBox.AccessibilityObject;

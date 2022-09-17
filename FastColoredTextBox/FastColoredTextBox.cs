@@ -6170,20 +6170,6 @@ namespace FastColoredTextBoxNS
       }
 
       /// <summary>
-      /// Creates a new accessibility object for the control.
-      /// </summary>
-      /// <returns>
-      /// A new <see cref="T:System.Windows.Forms.AccessibleObject" /> for the control.
-      /// </returns>
-      protected override AccessibleObject CreateAccessibilityInstance()
-      {
-         var norm = base.CreateAccessibilityInstance();
-         //return norm;
-         var my = new FastColoredTextBoxAccessibleObject(this, norm.Parent);
-         return my;
-      }
-
-      /// <summary>
       /// Fires TextChanging event
       /// </summary>
       public virtual void OnTextChanging(ref string text)
