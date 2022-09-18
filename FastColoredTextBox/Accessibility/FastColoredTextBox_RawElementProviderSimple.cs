@@ -49,7 +49,8 @@ public partial class FastColoredTextBox : IRawElementProviderSimple
    /// <returns>Returns a reference to the object that supports the control pattern, or NULL if the control pattern is not supported.</returns>
    public object GetPatternProvider(int patternId)
    {
-      if (patternId == TextPatternIdentifiers.Pattern.Id)
+      // TODO: decide whether the value pattern will be implemented.
+      if (patternId == TextPatternIdentifiers.Pattern.Id) // || patternId == ValuePatternIdentifiers.Pattern.Id)
          return this;
 
       return null;
