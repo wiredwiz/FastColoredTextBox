@@ -36,17 +36,6 @@
     <DefineConstants>$(DefineConstants)TRACE;Styles32</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <COMReference Include="UIA">
-      <WrapperTool>tlbimp</WrapperTool>
-      <VersionMinor>0</VersionMinor>
-      <VersionMajor>1</VersionMajor>
-      <Guid>930299ce-9965-4dec-b0f4-a54848d4b667</Guid>
-      <Lcid>0</Lcid>
-      <Isolated>false</Isolated>
-      <EmbedInteropTypes>true</EmbedInteropTypes>
-    </COMReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="$(SolutionDir)icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
@@ -62,6 +51,15 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Design" />
+    <Reference Include="UIAutomationProvider">
+      <HintPath>..\..\..\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\6.0.9\UIAutomationProvider.dll</HintPath>
+    </Reference>
+    <Reference Include="UIAutomationTypes">
+      <HintPath>..\..\..\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\6.0.9\UIAutomationTypes.dll</HintPath>
+    </Reference>
+    <Reference Include="WindowsBase">
+      <HintPath>..\..\..\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\6.0.9\WindowsBase.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Update="AutocompleteMenu.cs">

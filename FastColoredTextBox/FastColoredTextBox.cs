@@ -3077,6 +3077,16 @@ namespace FastColoredTextBoxNS
 
       protected override void WndProc(ref Message m)
       {
+         if (m.Msg == NativeUIA.WM_GETOBJECT)
+         {
+            // If the window is being asked for a UIA provider, return ourselves.
+            if (m.LParam == NativeUIA.UiaRootObjectId)
+            {
+               m.Result = NativeUIA.UiaReturnRawElementProvider(this.Handle, m.WParam, m.LParam, this);
+               return;
+            }
+         }
+
          if (m.Msg == WM_HSCROLL || m.Msg == WM_VSCROLL)
             if (m.WParam.ToInt32() != SB_ENDSCROLL)
                Invalidate();

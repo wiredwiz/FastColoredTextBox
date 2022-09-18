@@ -13,6 +13,15 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\TabStrip.dll</HintPath>
     </Reference>
+    <Reference Include="UIAutomationProvider">
+      <HintPath>..\..\..\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\6.0.9\UIAutomationProvider.dll</HintPath>
+    </Reference>
+    <Reference Include="UIAutomationTypes">
+      <HintPath>..\..\..\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\6.0.9\UIAutomationTypes.dll</HintPath>
+    </Reference>
+    <Reference Include="WindowsBase">
+      <HintPath>..\..\..\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\6.0.9\WindowsBase.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Update="CustomHint.cs">

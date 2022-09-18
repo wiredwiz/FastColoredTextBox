@@ -9,7 +9,7 @@ namespace FastColoredTextBoxNS.Types
    /// <summary>
    /// Diapason of text chars
    /// </summary>
-   public class TextSelectionRange : IEnumerable<Place>
+   public partial class TextSelectionRange : IEnumerable<Place>
    {
       Place start;
       Place end;
