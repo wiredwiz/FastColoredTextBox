@@ -49,8 +49,9 @@ public partial class FastColoredTextBox : IRawElementProviderSimple
    /// <returns>Returns a reference to the object that supports the control pattern, or NULL if the control pattern is not supported.</returns>
    public object GetPatternProvider(int patternId)
    {
-      // TODO: decide whether the value pattern will be implemented.
-      if (patternId == TextPatternIdentifiers.Pattern.Id) // || patternId == ValuePatternIdentifiers.Pattern.Id)
+      if (patternId == TextPatternIdentifiers.Pattern.Id || 
+          patternId == ValuePatternIdentifiers.Pattern.Id ||
+          patternId == RangeValuePatternIdentifiers.Pattern.Id)
          return this;
 
       return null;
@@ -63,6 +64,12 @@ public partial class FastColoredTextBox : IRawElementProviderSimple
    /// <returns>Returns the property value, or <c>null</c> if the property is not supported by this provider.</returns>
    public object GetPropertyValue(int propertyId)
    {
+      if (propertyId == AutomationElementIdentifiers.AutomationIdProperty.Id)
+         return "FastColoredTextBox";
+
+      if (propertyId == AutomationElementIdentifiers.ClickablePointProperty.Id)
+         return PlaceToPoint(Selection.Start);
+
       if (propertyId == AutomationElementIdentifiers.IsKeyboardFocusableProperty.Id)
          return true;
 
@@ -73,7 +80,19 @@ public partial class FastColoredTextBox : IRawElementProviderSimple
          return "FastColoredTextBox";
 
       if (propertyId == AutomationElementIdentifiers.LocalizedControlTypeProperty.Id)
-         return "FastColoredTextBox";
+         return "edit";
+
+      if (propertyId == AutomationElementIdentifiers.BoundingRectangleProperty.Id)
+         return ClientRectangle;
+
+      if (propertyId == AutomationElementIdentifiers.IsContentElementProperty.Id)
+         return true;
+
+      if (propertyId == AutomationElementIdentifiers.IsControlElementProperty.Id)
+         return true;
+
+      if (propertyId == AutomationElementIdentifiers.IsPasswordProperty.Id)
+         return false;
 
       return null;
    }
