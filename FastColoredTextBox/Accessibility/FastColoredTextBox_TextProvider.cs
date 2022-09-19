@@ -40,6 +40,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Provider;
 
+// ReSharper disable once CheckNamespace
 namespace FastColoredTextBoxNS;
 
 public partial class FastColoredTextBox : ITextProvider
@@ -48,6 +49,15 @@ public partial class FastColoredTextBox : ITextProvider
    /// Gets the current selection.
    /// </summary>
    /// <returns>ITextRangeProvider[].</returns>
+   /// <remarks>Important links for implementation
+   /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/expose-a-server-side-ui-automation-provider
+   /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/server-side-ui-automation-provider-implementation
+   /// https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-implementingtextandtextrange
+   /// https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-ui-automation-textpattern-overview
+   /// https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-about-text-and-textrange-patterns
+   /// https://learn.microsoft.com/en-us/dotnet/api/system.windows.automation.provider.itextprovider?view=netframework-4.8
+   /// https://learn.microsoft.com/en-us/dotnet/api/system.windows.automation.provider.itextrangeprovider?view=netframework-4.8
+   /// </remarks>
    public ITextRangeProvider[] GetSelection()
    {
       throw new System.NotImplementedException();
