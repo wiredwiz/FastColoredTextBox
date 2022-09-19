@@ -36,49 +36,117 @@
 
 // ReSharper disable once CheckNamespace
 
-using System.Windows;
+using FastColoredTextBoxNS.Types;
+using System.Linq;
 using System.Windows.Automation;
 using System.Windows.Automation.Provider;
 
 // ReSharper disable once CheckNamespace
 namespace FastColoredTextBoxNS;
 
+/// <summary>
+/// ITextProvider implementation for FastColoredTextBox.
+/// Implements the <see cref="System.Windows.Forms.UserControl" />
+/// Implements the <see cref="IValueProvider" />
+/// Implements the <see cref="System.ComponentModel.ISupportInitialize" />
+/// Implements the <see cref="ITextProvider" />
+/// Implements the <see cref="IRawElementProviderSimple" />
+/// </summary>
+/// <remarks>Important links for implementation
+/// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/expose-a-server-side-ui-automation-provider
+/// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/server-side-ui-automation-provider-implementation
+/// https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-implementingtextandtextrange
+/// https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-ui-automation-textpattern-overview
+/// https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-about-text-and-textrange-patterns
+/// https://learn.microsoft.com/en-us/dotnet/api/system.windows.automation.provider.itextprovider?view=netframework-4.8
+/// https://learn.microsoft.com/en-us/dotnet/api/system.windows.automation.provider.itextrangeprovider?view=netframework-4.8
+/// </remarks>
+/// <seealso cref="System.Windows.Forms.UserControl" />
+/// <seealso cref="IValueProvider" />
+/// <seealso cref="System.ComponentModel.ISupportInitialize" />
+/// <seealso cref="ITextProvider" />
+/// <seealso cref="IRawElementProviderSimple" />
 public partial class FastColoredTextBox : ITextProvider
 {
    /// <summary>
-   /// Gets the current selection.
+   /// Gets a collection of text ranges that represents the currently selected text in a text-based control.
    /// </summary>
-   /// <returns>ITextRangeProvider[].</returns>
-   /// <remarks>Important links for implementation
-   /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/expose-a-server-side-ui-automation-provider
-   /// https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/server-side-ui-automation-provider-implementation
-   /// https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-implementingtextandtextrange
-   /// https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-ui-automation-textpattern-overview
-   /// https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-about-text-and-textrange-patterns
-   /// https://learn.microsoft.com/en-us/dotnet/api/system.windows.automation.provider.itextprovider?view=netframework-4.8
-   /// https://learn.microsoft.com/en-us/dotnet/api/system.windows.automation.provider.itextrangeprovider?view=netframework-4.8
-   /// </remarks>
+   /// <returns>An array of <see cref="ITextRangeProvider"/> representing current selections.</returns>
    public ITextRangeProvider[] GetSelection()
    {
-      throw new System.NotImplementedException();
+      return new ITextRangeProvider[] { Selection };
    }
 
+   /// <summary>
+   /// Retrieves an array of disjoint text ranges from a text container where each text range begins with the first
+   /// partially visible line through to the end of the last partially visible line.
+   /// </summary>
+   /// <returns>An array of <see cref="ITextRangeProvider"/> interfaces of the visible text ranges or an empty array.</returns>
    public ITextRangeProvider[] GetVisibleRanges()
    {
-      throw new System.NotImplementedException();
+      var visible = Accessibility.AccessibilityHelper.GetVisibleLines(this);
+      var result = new ITextRangeProvider[visible.Count];
+      for (int i = 0; i < visible.Count; i++)
+      {
+         var line = visible[i];
+         var range = new TextSelectionRange(this,
+                                            line.StartX,
+                                            line.SourceLineNo,
+                                            line.Text.Length - line.StartX,
+                                            line.SourceLineNo);
+         result[i] = range;
+      }
+
+      return result;
    }
 
+   /// <summary>
+   /// Retrieves a text range that encloses the specified child element (for example, an image, hyperlink, or other embedded object).
+   /// </summary>
+   /// <param name="childElement">The UI Automation provider of the specified child element.</param>
+   /// <returns>
+   /// The text range that encloses the child element.
+   /// </returns>
+   /// <remarks>
+   /// The returned range completely encloses the content of the child element such that:
+   ///   1. ITextRangeProvider::GetEnclosingElement returns the child element itself, or the innermost descendant of the child element
+   ///      that shares the same text range as the child element
+   ///   2. ITextRangeProvider::GetChildren returns children of the element from (1) that are completely enclosed within the range
+   ///   3. Both endpoints of the range are at the boundaries of the child element
+   /// </remarks>
    public ITextRangeProvider RangeFromChild(IRawElementProviderSimple childElement)
    {
-      throw new System.NotImplementedException();
+      return null;
    }
 
-   public ITextRangeProvider RangeFromPoint(Point screenLocation)
+   /// <summary>
+   /// Returns the degenerate (empty) text range nearest to the specified screen coordinates.
+   /// </summary>
+   /// <param name="screenLocation">The location in screen coordinates.</param>
+   /// <returns>A degenerate (empty) text range nearest the specified location..</returns>
+   public ITextRangeProvider RangeFromPoint(System.Windows.Point screenLocation)
    {
-      throw new System.NotImplementedException();
+      var editorPlace = this.PointToPlace(new System.Drawing.Point((int)screenLocation.X, (int)screenLocation.Y));
+      return new TextSelectionRange(this, editorPlace, editorPlace);
    }
 
-   public ITextRangeProvider DocumentRange => throw new System.NotImplementedException();
+   /// <summary>
+   /// Gets a text range that encloses the main text of a document.
+   /// </summary>
+   /// <value>A <see cref="ITextRangeProvider"/> instance that contains the entire document text.</value>
+   public ITextRangeProvider DocumentRange
+   {
+      get
+      {
+         var start = new Place(0, 0);
+         var end = LinesCount != 0 ? new Place(this[LinesCount - 1].Count, LinesCount - 1) : start;
+         return new TextSelectionRange(this, start, end);
+      }
+   }
 
-   public SupportedTextSelection SupportedTextSelection => throw new System.NotImplementedException();
+   /// <summary>
+   /// Gets a value that specifies the type of text selection that is supported by the control.
+   /// </summary>
+   /// <value>The supported text selection type(s) for the document.</value>
+   public SupportedTextSelection SupportedTextSelection => SupportedTextSelection.Single;
 }

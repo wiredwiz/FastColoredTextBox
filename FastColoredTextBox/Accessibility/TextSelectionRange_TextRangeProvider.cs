@@ -36,9 +36,11 @@
 
 // ReSharper disable once CheckNamespace
 
+using System;
 using System.Windows.Automation.Provider;
 using System.Windows.Automation.Text;
 
+// ReSharper disable once CheckNamespace
 namespace FastColoredTextBoxNS.Types;
 
 public partial class TextSelectionRange : ITextRangeProvider
@@ -53,12 +55,61 @@ public partial class TextSelectionRange : ITextRangeProvider
       return range == this;
    }
 
+   /// <summary>
+   /// Returns a value that specifies whether two text ranges have identical endpoints.
+   /// </summary>
+   /// <param name="endpoint">The Start or End endpoint of the caller.</param>
+   /// <param name="targetRange">The target range for comparison.</param>
+   /// <param name="targetEndpoint">The Start or End endpoint of the target.</param>
+   /// <returns>
+   /// Returns a negative value if the caller's endpoint occurs earlier in the text than the target endpoint.
+   /// Returns zero if the caller's endpoint is at the same location as the target endpoint.
+   /// Returns a positive value if the caller's endpoint occurs later in the text than the target endpoint.</returns>
+   /// <exception cref="System.ArgumentException">Endpoints are from different text range sources.</exception>
    int ITextRangeProvider.CompareEndpoints(TextPatternRangeEndpoint endpoint, ITextRangeProvider targetRange,
       TextPatternRangeEndpoint targetEndpoint)
    {
-      throw new System.NotImplementedException();
+      var target = targetRange as TextSelectionRange;
+      if (target == null || tb != target.tb)
+         throw new ArgumentException("Endpoints are from different text range sources.");
+
+      if (endpoint == TextPatternRangeEndpoint.Start)
+         return Start.CompareTo(target.Start);
+      if (endpoint == TextPatternRangeEndpoint.End)
+         return End.CompareTo(target.End);
+
+      throw new ArgumentException("Unhandled endpoint enumeration type");
    }
 
+   /// <summary>Expands the text range to the specified text unit.</summary>
+   /// <param name="unit">The textual unit.</param>
+   /// <remarks>
+   ///   <para>
+   /// If the range is already an exact quantity of the specified units then it remains unchanged.
+   /// There is a series of steps are involved behind the scenes in order for the Move method to execute successfully.
+   /// </para>
+   ///   <list type="number">
+   ///     <item>The text range is normalized; that is, the text range is collapsed to a degenerate range at the Start endpoint, which makes the End endpoint superfluous. This step is necessary to remove ambiguity in situations where a text range spans unit boundaries; for example, "{The U}RL https://www.microsoft.com/ is embedded in text" where "{" and "}" are the text range endpoints. </item>
+   ///     <item>The resulting range is moved backward in the DocumentRange to the beginning of the requested unit boundary. </item>
+   ///     <item>The range is moved forward or backward in the DocumentRange by the requested number of unit boundaries. </item>
+   ///     <item>The range is then expanded from a degenerate range state by moving the End endpoint by one requested unit boundary. </item>
+   ///   </list>
+   ///   <para>
+   /// ExpandToEnclosingUnit respects both hidden and visible text.
+   /// ExpandToEnclosingUnit defers to the next largest TextUnit supported if the given TextUnit is not supported by the control.
+   /// The order, from smallest unit to largest, is listed below.
+   /// </para>
+   ///   <list type="bullet">
+   ///     <item>Character</item>
+   ///     <item>Format</item>
+   ///     <item>Word</item>
+   ///     <item>Line</item>
+   ///     <item>Paragraph</item>
+   ///     <item>Page</item>
+   ///     <item>Document
+   /// </item>
+   ///   </list>
+   /// </remarks>
    void ITextRangeProvider.ExpandToEnclosingUnit(TextUnit unit)
    {
       throw new System.NotImplementedException();
@@ -91,9 +142,17 @@ public partial class TextSelectionRange : ITextRangeProvider
 
    string ITextRangeProvider.GetText(int maxLength)
    {
-      throw new System.NotImplementedException();
+      return Text != null && Text.Length > maxLength ? Text.Substring(0, maxLength) : Text;
    }
 
+   /// <summary>
+   /// Moves the text range the specified number of text units.
+   /// </summary>
+   /// <param name="unit">The text unit boundary.</param>
+   /// <param name="count">The number of text units to move.</param>
+   /// <returns>
+   /// The number of units actually moved. This can be less than the number requested
+   /// if either of the new text range endpoints is greater than or less than the DocumentRange endpoints.</returns>
    int ITextRangeProvider.Move(TextUnit unit, int count)
    {
       throw new System.NotImplementedException();
@@ -116,7 +175,7 @@ public partial class TextSelectionRange : ITextRangeProvider
    /// <exception cref="System.NotImplementedException"></exception>
    void ITextRangeProvider.Select()
    {
-      throw new System.NotImplementedException();
+      tb.Selection = this;
    }
 
    /// <summary>
@@ -154,6 +213,6 @@ public partial class TextSelectionRange : ITextRangeProvider
    /// <exception cref="System.NotImplementedException"></exception>
    IRawElementProviderSimple[] ITextRangeProvider.GetChildren()
    {
-      throw new System.NotImplementedException();
+      return Array.Empty<IRawElementProviderSimple>();
    }
 }
