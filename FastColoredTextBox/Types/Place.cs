@@ -1,16 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace FastColoredTextBoxNS.Types {
 	/// <summary>
 	/// Line index and char index
 	/// </summary>
-	public struct Place : IEquatable<Place> {
+	public struct Place : IEquatable<Place>, IComparable<Place>
+	{
 		public int iChar;
 		public int iLine;
 
 		public Place(int iChar, int iLine) {
 			this.iChar = iChar;
 			this.iLine = iLine;
+		}
+
+		/// <inheritdoc />
+		public int CompareTo(Place other)
+		{
+			var lineComparison = iLine.CompareTo(other.iLine);
+			if (lineComparison != 0)
+				return lineComparison;
+			return iChar.CompareTo(other.iChar);
 		}
 
 		public void Offset(int dx, int dy) {
