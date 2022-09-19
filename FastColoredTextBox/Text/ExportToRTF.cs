@@ -117,7 +117,7 @@ namespace FastColoredTextBoxNS.Text {
 			TextStyle textStyle = null;
 			var hasTextStyle = false;
 
-         var intersect = tb.StyleManager.GetStyles().Intersect(styles);
+         var intersect = styles == null ? tb.StyleManager.GetStyles() : tb.StyleManager.GetStyles().Intersect(styles);
          foreach (var style in intersect)
          {
             var isTextStyle = style is TextStyle;
