@@ -37,6 +37,7 @@
 // ReSharper disable once CheckNamespace
 
 using System;
+using System.Windows.Automation;
 using System.Windows.Automation.Provider;
 using System.Windows.Automation.Text;
 
@@ -112,7 +113,25 @@ public partial class TextSelectionRange : ITextRangeProvider
    /// </remarks>
    void ITextRangeProvider.ExpandToEnclosingUnit(TextUnit unit)
    {
-      throw new System.NotImplementedException();
+      TextSelectionRange range = this;
+      switch (unit)
+      {
+         case TextUnit.Character: 
+            range = tb.GetCharacterSelection(Start);
+            break;
+         case TextUnit.Word:
+         case TextUnit.Format:
+         case TextUnit.Line:
+            range = tb.GetLineSelection(Start);
+            break;
+         case TextUnit.Paragraph:
+         case TextUnit.Page:
+         case TextUnit.Document:
+            range = tb.GetDocumentSelection(Start);
+            break;
+      }
+
+      tb.Selection = range;
    }
 
    ITextRangeProvider ITextRangeProvider.FindAttribute(int attribute, object value, bool backward)
@@ -127,12 +146,19 @@ public partial class TextSelectionRange : ITextRangeProvider
 
    object ITextRangeProvider.GetAttributeValue(int attribute)
    {
-      throw new System.NotImplementedException();
+      if (attribute == TextPatternIdentifiers.IsReadOnlyAttribute.Id)
+         return ReadOnly;
+
+      return null;
    }
 
    double[] ITextRangeProvider.GetBoundingRectangles()
    {
-      throw new System.NotImplementedException();
+      var NumberOfLines = (End.iLine - Start.iLine) + 1;
+      var xAdjust = tb.CharWidth * Start.iChar;
+      var height = tb.CharHeight * NumberOfLines;
+      // TODO: bad logic, needs fixing, but is a temp fix for working
+      return new double[4] { tb.ClientRectangle.X, tb.ClientRectangle.Y, tb.ClientRectangle.Width, tb.ClientRectangle.Height };
    }
 
    IRawElementProviderSimple ITextRangeProvider.GetEnclosingElement()
@@ -155,7 +181,28 @@ public partial class TextSelectionRange : ITextRangeProvider
    /// if either of the new text range endpoints is greater than or less than the DocumentRange endpoints.</returns>
    int ITextRangeProvider.Move(TextUnit unit, int count)
    {
-      throw new System.NotImplementedException();
+      var actual = count;
+      TextSelectionRange range = this;
+      switch (unit)
+      {
+         case TextUnit.Character: 
+            range = tb.GetNextCharacterSelection(End, ref actual);
+            break;
+         case TextUnit.Word:
+         case TextUnit.Format:
+         case TextUnit.Line:
+            range = tb.GetNextLineSelection(End, ref actual);
+            break;
+         case TextUnit.Paragraph:
+         case TextUnit.Page:
+         case TextUnit.Document:
+            range = tb.GetDocumentSelection(End);
+            actual = 0;
+            break;
+      }
+
+      tb.Selection = range;
+      return actual;
    }
 
    int ITextRangeProvider.MoveEndpointByUnit(TextPatternRangeEndpoint endpoint, TextUnit unit, int count)
@@ -163,10 +210,40 @@ public partial class TextSelectionRange : ITextRangeProvider
       throw new System.NotImplementedException();
    }
 
+   /// <summary>
+   /// Moves one endpoint of a text range to the specified endpoint of a second text range.
+   /// </summary>
+   /// <param name="endpoint">The endpoint to move.</param>
+   /// <param name="targetRange">Another range from the same text provider.</param>
+   /// <param name="targetEndpoint">An endpoint on the other range.</param>
+   /// <remarks>
+   /// If the endpoint being moved crosses the other endpoint of the same text range then that other
+   /// endpoint is moved also, resulting in a degenerate range and ensuring the correct ordering of the endpoints
+   /// (that is, Start is always less than or equal to End).
+   /// </remarks>
    void ITextRangeProvider.MoveEndpointByRange(TextPatternRangeEndpoint endpoint, ITextRangeProvider targetRange,
       TextPatternRangeEndpoint targetEndpoint)
    {
-      throw new System.NotImplementedException();
+      var target = targetRange as TextSelectionRange;
+      if (target == null)
+         throw new ArgumentException($"{nameof(targetRange)} is from a different ITextRangeProvider");
+
+      if (endpoint == TextPatternRangeEndpoint.Start)
+      {
+         Start = targetEndpoint == TextPatternRangeEndpoint.Start ? target.Start : target.End;
+         if (End < Start)
+            End = Start;
+         return;
+      }
+      if (endpoint == TextPatternRangeEndpoint.End)
+      {
+         End = targetEndpoint == TextPatternRangeEndpoint.Start ? target.Start : target.End;
+         if (End < Start)
+            Start = End;
+         return;
+      }
+
+      throw new ArgumentException("Unsupported EndPoint enumeration");
    }
 
    /// <summary>
