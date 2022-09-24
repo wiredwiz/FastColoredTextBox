@@ -292,4 +292,15 @@ public partial class TextSelectionRange : ITextRangeProvider
    {
       return Array.Empty<IRawElementProviderSimple>();
    }
+
+   /// <summary>
+   /// Exchanges the Start and End endpoints for one another.
+   /// </summary>
+   public virtual void ExchangeEndpoints()
+   {
+      if (Start == End)
+         return;
+
+      (End, Start) = (Start, End);
+   }
 }
