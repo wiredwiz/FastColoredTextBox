@@ -6553,10 +6553,11 @@ namespace FastColoredTextBoxNS
       }
 
       /// <summary>
-      /// Get text of given line
+      /// Get text of given line.
       /// </summary>
-      /// <param name="iLine">Line index</param>
+      /// <param name="iLine">Index of the line to get.</param>
       /// <returns>Text</returns>
+      /// <exception cref="ArgumentOutOfRangeException">iLine is less than 0 or greater than or equal to line count.</exception>
       public string GetLineText(int iLine)
       {
          if (iLine < 0 || iLine >= lines.Count)
@@ -6568,7 +6569,7 @@ namespace FastColoredTextBoxNS
       }
 
       /// <summary>
-      /// Exapnds folded block
+      /// Expands folded block.
       /// </summary>
       /// <param name="iLine">Start line</param>
       public virtual void ExpandFoldedBlock(int iLine)
