@@ -34,6 +34,8 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endregion
 
+using System.Windows.Automation.Text;
+using FastColoredTextBoxNS.Accessibility;
 using FastColoredTextBoxNS.Types;
 
 // ReSharper disable once CheckNamespace
@@ -41,6 +43,31 @@ namespace FastColoredTextBoxNS;
 
 public partial class FastColoredTextBox
 {
+   protected Place _DocumentStart = new Place(0, 0);
+
+   /// <summary>
+   /// The starting point for the Document.
+   /// </summary>
+   /// <returns>A <see cref="Place"/> representing the start of the document.</returns>
+   public Place DocumentStart()
+   {
+      return _DocumentStart;
+   }
+
+   /// <summary>
+   /// The ending point for the Document.
+   /// </summary>
+   /// <returns>A <see cref="Place"/> representing the end of the document.</returns>
+   public Place DocumentEnd()
+   {
+      if (TextSource.Count == 0 || (TextSource.Count == 1 && TextSource[0].Count == 0))
+         return _DocumentStart;
+     
+      var lastLine = TextSource.Count - 1;
+      var lastChar = TextSource[lastLine].Count - 1;
+      return new Place(lastChar, lastLine);
+   }
+
    /// <summary>
    /// Gets a selection of one character from the current position.
    /// </summary>
@@ -159,8 +186,12 @@ public partial class FastColoredTextBox
    public virtual TextSelectionRange GetNextCharacterSelection(Place place, ref int moveIncrement)
    {
       var start = place;
+      // TODO: temporary naive flawed logic for test
       place.Offset(moveIncrement, 0);
-      return new TextSelectionRange(this, start, place);
+      var result = new TextSelectionRange(this, start, place);
+      if (result.End < result.Start)
+         result.ExchangeEndpoints();
+      return result;
    }
 
    /// <summary>
@@ -200,14 +231,16 @@ public partial class FastColoredTextBox
          moveIncrement = place.iLine;
          place.iLine = 0;
       }
-
-      if (place.iLine >= Lines.Count)
+      else if (place.iLine >= Lines.Count)
       {
          moveIncrement = place.iLine - (Lines.Count - 1);
          place.iLine = Lines.Count - 1;
       }
 
-      return GetLineSelection(place);
+      var result = GetLineSelection(place);
+      if (result.End < result.Start)
+         result.ExchangeEndpoints();
+      return result;
    }
 
    /// <summary>
@@ -232,5 +265,127 @@ public partial class FastColoredTextBox
    {
       moveIncrement = 0;
       return GetDocumentSelection(place);
+   }
+
+   /// <summary>
+   /// Gets the next endpoint from the current.
+   /// </summary>
+   /// <param name="place">The place to start from.</param>
+   /// <param name="unit">The unit to find the endpoint for.</param>
+   /// <returns>A new <see cref="Place" /> that represents the endpoint.</returns>
+   protected virtual Place GetNextEndpoint(Place place, TextUnit unit)
+   {
+      var result = place;
+      if (unit > TextUnit.Format)
+         place = SkipWhitespace(place);
+      while (true)
+      {
+         var next = place.Advance(this);
+         if (unit == TextUnit.Character)
+         {
+            result = next;
+            break;
+         }
+         else if (unit is TextUnit.Format or TextUnit.Word)
+         {
+            char c = lines[next.iLine][next.iChar].C;
+            if (!char.IsLetterOrDigit(c) && c != '_')
+            {
+               result = next;
+               break;
+            }
+         }
+         else if (unit is TextUnit.Line)
+         {
+            if (next.iLine != place.iLine)
+            {
+               result = next;
+               break;
+            }
+         }
+         else if (unit is TextUnit.Paragraph or TextUnit.Page or TextUnit.Document)
+         {
+            return DocumentEnd();
+         }
+
+         if (next == place)
+            return result;
+
+         place = next;
+      }
+
+      return result;
+   }
+
+   /// <summary>
+   /// Gets the previous endpoint from the current.
+   /// </summary>
+   /// <param name="place">The place to start from.</param>
+   /// <param name="unit">The unit to find the endpoint for.</param>
+   /// <returns>A new <see cref="Place"/> that represents the endpoint.</returns>
+   protected virtual Place GetPreviousEndpoint(Place place, TextUnit unit)
+   {
+      var result = place;
+      if (unit > TextUnit.Format)
+         place = SkipWhitespace(place);
+      while (true)
+      {
+         var next = place.Advance(this, false);
+         if (unit == TextUnit.Character)
+         {
+            result = next;
+            break;
+         }
+         else if (unit is TextUnit.Format or TextUnit.Word)
+         {
+            char c = lines[next.iLine][next.iChar].C;
+            if (!char.IsLetterOrDigit(c) && c != '_')
+            {
+               result = next;
+               break;
+            }
+         }
+         else if (unit is TextUnit.Line)
+         {
+            if (next.iLine != place.iLine)
+            {
+               result = next;
+               break;
+            }
+         }
+         else if (unit is TextUnit.Paragraph or TextUnit.Page or TextUnit.Document)
+         {
+            return DocumentStart();
+         }
+
+         if (next == place)
+            return result;
+
+         place = next;
+      }
+
+      return result;
+   }
+
+   /// <summary>
+   /// Skips over all whitespace from the specified place.
+   /// </summary>
+   /// <param name="place">The place to start from.</param>
+   /// <param name="forward">if set to <c>true</c> advances [forward]; otherwise backwards.</param>
+   /// <returns>A new <see cref="Place"/> after any skipped whitespace.</returns>
+   private Place SkipWhitespace(Place place, bool forward = true)
+   {
+      char c = lines[place.iLine][place.iChar].C;
+      while (char.IsWhiteSpace(c))
+      {
+         var next = place.Advance(this, forward);
+         if (next == place)
+            return next;
+
+         place = next;
+         c = lines[place.iLine][place.iChar].C;
+      }
+
+      return place;
    }
 }
